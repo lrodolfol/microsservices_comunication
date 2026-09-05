@@ -1,0 +1,29 @@
+dotnet tool install --global dotnet-sonarscanner
+
+dotnet add package coverlet.collector
+dotnet add package coverlet.msbuild,
+
+# Iniciar análise do SonarQube
+dotnet sonarscanner begin /k:"names_banl" /d:sonar.host.url="http://localhost:9000" /d:sonar.login="sqp_11be13110b7b899434360a91c544ee1fadfd9cea" /d:sonar.cs.vstest.reportsPaths="**/*.trx" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" /d:sonar.coverage.exclusions="**/Program.cs,**/Startup.cs",**/OpenTelemetryConfig.cs,**/Endpoints.cs /d:sonar.exclusions="**/Migrations/**,**/bin/**,**/obj/**",**/CoverageReport/**
+
+# Compilar o projeto
+dotnet build
+
+# Executar testes com coleta de cobertura
+dotnet test --logger trx --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+
+# Finalizar análise
+dotnet sonarscanner end /d:sonar.login="sqp_11be13110b7b899434360a91c544ee1fadfd9cea"
+
+
+
+
+===html===
+dotnet tool install -g dotnet-reportgenerator-globaltool
+reportgenerator -reports:"**/coverage.opencover.xml" -targetdir:"CoverageReport" -reporttypes:Html
+
+
+
+
+com xml
+dotnet sonarscanner begin /k:"names_banl" /s:"./SonarQube.Analysis.xml" /d:sonar.host.url="http://localhost:9000"

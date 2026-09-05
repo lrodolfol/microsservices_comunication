@@ -1,0 +1,41 @@
+# Build output
+**/bin/
+**/obj/
+**/Debug/
+**/Release/
+**/x64/
+**/x86/
+**/TestResults/
+**/CoverageReport/
+
+# IDEs and editors
+**/.idea/
+**/.vs/
+**/.vscode/
+**/*.suo
+**/*.user
+**/*.userosscache
+**/*.sln.docstates
+**/*.DotSettings.user
+
+# Logs and diagnostics
+**/*.log
+**/*.tmp
+**/*.cache
+**/*.pid
+**/*.pid.lock
+**/.debug/
+**/debug/
+
+# NuGet and package artifacts
+**/*.nupkg
+**/packages/
+**/project.lock.json
+**/artifacts/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Sonar
+**/CoverageReport/**

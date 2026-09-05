@@ -1,0 +1,78 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-test-sonar-docker:
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_ROOT: /usr/share/dotnet
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      DOCKER_REGISTRY: ghcr.io   # Exemplo GitHub Container Registry
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+      BUILD_CONFIGURATION: Release
+
+    steps:
+      # 1️⃣ Checkout do código
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # 2️⃣ Setup .NET
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      # 3️⃣ Restore dependências
+      - name: Dotnet Restore
+        run: dotnet restore NameBankSln.sln
+
+      # 4️⃣ Build
+      - name: Dotnet Build
+        run: dotnet build NameBankSln.sln -c $BUILD_CONFIGURATION --no-restore
+
+      # 5️⃣ Testes
+      - name: Run Tests
+        run: dotnet test NamesBankTests/NamesBank.Tests.csproj --logger "console;verbosity=normal"
+
+      # 6️⃣ SonarQube: iniciar análise
+      - name: SonarQube Begin Analysis
+        run: dotnet sonarscanner begin /k:"NamesBank" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}"
+
+      # 7️⃣ Build novamente para SonarQube
+      - name: Dotnet Build for SonarQube
+        run: dotnet build NameBankSln.sln -c $BUILD_CONFIGURATION
+
+      # 8️⃣ Finalizar análise SonarQube
+      - name: SonarQube End Analysis
+        run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+
+      # 9️⃣ Esperar Quality Gate
+      - name: SonarQube Quality Gate
+        uses: sonarsource/sonarcloud-github-action@v2
+        with:
+          args: /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+
+      # 🔟 Login no Docker registry
+      - name: Login to Docker Registry
+        uses: docker/login-action@v2
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      # 1️⃣1️⃣ Docker Build e Tag
+      - name: Build Docker Image
+        run: |
+          docker build -t $DOCKER_REGISTRY/$DOCKER_USERNAME/$IMAGE_NAME:latest .
+
+      # 1️⃣2️⃣ Push Docker Image
+      - name: Push Docker Image
+        run: |
+          docker push $DOCKER_REGISTRY/$DOCKER_USERNAME/$IMAGE_NAME:latest

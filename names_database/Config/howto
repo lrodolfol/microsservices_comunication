@@ -1,0 +1,40 @@
+﻿run dockerfile on root:
+docker build -f Config/Dockerfile -t namesbank:0.0.1 .
+docker run --name names_bank -p 8080:8080 namesbank:0.0.1
+
+docker build -f Config/Dockerfile -t rodolfojesus/namesbank:0.0.1 .
+
+kind create cluster --name microsserives --config .\Config\kind-config.yml
+kubectl cluster-info --context kind-microsserives
+kind load docker-image namesbank:0.0.1 --name microsserives
+kubectl apply -f .\Config\names_bank.yml
+kind get clusters
+
+kubectl get pods
+kubectl logs -f banks-names-deployment-68fd98899f-24g8h
+
+kubectl get services
+
+kubectl port-forward service/bank-names-service 8080:8080
+kubectl port-forward service/bank-names-service 8080:8080 &
+
+
+==comandos uteis==
+kubectl delete pod banks-names-deployment-68fd98899f-l2lrs
+kubectl delete deployment banks-names-deployment
+kubectl delete service bank-names-service
+kubectl delete cronjob scale-up-banks-names
+kubectl config delete-context rancher-desktop
+kubectl scale deployment banks-names-deployment --replicas=2
+ver metricas == kubectl top pod banks-names-deployment-6ffc5b78d6-mmm6v
+
+
+link kubernetes:
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+kubectl proxy
+http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+
+kubectl create serviceaccount dashboard-admin-sa -n kubernetes-dashboard
+kubectl apply -f .\Config\admin_role.yml
+kubectl -n kubernetes-dashboard create token dashboard-admin-sa == para pegar token
+

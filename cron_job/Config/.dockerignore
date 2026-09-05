@@ -1,0 +1,39 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Build artifacts
+bin
+obj
+*.dll
+*.exe
+*.pdb
+
+# IDE
+.vscode
+.vs
+*.user
+*.sln.iml
+.idea
+
+# Dependencies
+node_modules
+package-lock.json
+yarn.lock
+
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Docker
+.docker
+docker-compose.*.yml
+Dockerfile
+
+# Misc
+README.md
+LICENSE
+.env
+.env.local

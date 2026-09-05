@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cronjob-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cronjob
+  template:
+    metadata:
+      labels:
+        app: cronjob
+    spec:
+      containers:
+        - name: microsservice-cronjob
+          image: cronjob:0.0.1
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "PROD"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
