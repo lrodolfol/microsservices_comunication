@@ -21,6 +21,32 @@ public static class Endpoints
                 Errors = null
             });
         });
+
+        app.MapGet("/name-with-delay", async (HttpRequest request, HttpContext context, IHttpClientFactory httpFactory) =>
+        {
+            var invertTextApiRequest = new InvertTextApiRequest();
+            var clientRequest = new ClientRequest<InvertTextApiRequest>(invertTextApiRequest, httpFactory, logger);
+            Thread.Sleep(5000); // Simulate a delay of 5 seconds
+            InvertTextApiResponse response = await clientRequest.GetAsync();
+            
+            var headers = request.Headers;
+            var correlationId = headers["CorrelationId"].FirstOrDefault();
+        
+            if (string.IsNullOrEmpty(correlationId))
+                correlationId = Guid.NewGuid().ToString();
+        
+            context.Response.Headers.Append("correlationId", correlationId);
+
+            var traceId = Activity.Current?.SetTag("correlation.id", correlationId).TraceId.ToString();
+            logger.LogInformation("Request processed with correlationId: {CorrelationId}", correlationId);
+            
+            return Results.Ok(new ApiResponse<InvertTextApiResponse>()
+            {
+                Data = response,
+                Success = true,
+                Errors = null
+            });
+        });
         
         app.MapGet("/name", async (HttpRequest request, HttpContext context, IHttpClientFactory httpFactory) =>
         {
@@ -33,6 +59,8 @@ public static class Endpoints
         
             if (string.IsNullOrEmpty(correlationId))
                 correlationId = Guid.NewGuid().ToString();
+
+            logger.LogInformation("Name created: {response}", response.ToString() ?? "");
         
             context.Response.Headers.Append("correlationId", correlationId);
 
